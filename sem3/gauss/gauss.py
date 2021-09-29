@@ -24,6 +24,13 @@ def hilbert_matrix(n):
 
 
 def random_matrix(n):
+    matrix = [[0] * n for i in range(n)]
+    for i in range(n):
+        for j in range(n):
+            matrix[i][j] = randint(-100, 100) * 1.0
+    return matrix
+
+def random_matrix_with_b(n):
     matrix = [[0] * (n + 1) for i in range(n)]
     xs = [i + 1 for i in range(n)]
     for i in range(n):
@@ -34,6 +41,10 @@ def random_matrix(n):
             [x * a for (x, a) in zip(xs, [matrix[i][j] for j in range(n)])],
         )
     return matrix
+
+
+def mult(X, Y):
+    return [[sum(a*b for a,b in zip(X_row,Y_col)) for Y_col in zip(*Y)] for X_row in X]
 
 
 def pretty_print(matrix):
@@ -98,3 +109,9 @@ def inverse(A):
         for j in range(n):
             E[i][j] /= A[i][i]
     return E
+
+
+H = hilbert_matrix(40)
+y = gauss(H)
+print(y)
+print(f"Hilbert: error = {find_error(y)}")
