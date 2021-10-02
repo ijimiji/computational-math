@@ -30,6 +30,7 @@ def random_matrix(n):
             matrix[i][j] = randint(-100, 100) * 1.0
     return matrix
 
+
 def random_matrix_with_b(n):
     matrix = [[0] * (n + 1) for i in range(n)]
     xs = [i + 1 for i in range(n)]
@@ -44,7 +45,9 @@ def random_matrix_with_b(n):
 
 
 def mult(X, Y):
-    return [[sum(a*b for a,b in zip(X_row,Y_col)) for Y_col in zip(*Y)] for X_row in X]
+    return [
+        [sum(a * b for a, b in zip(X_row, Y_col)) for Y_col in zip(*Y)] for X_row in X
+    ]
 
 
 def pretty_print(matrix):
@@ -95,13 +98,13 @@ def inverse(A):
         assert A[i_max][i] != 0, "Zero on main diag"
         A[i], A[i_max] = A[i_max], A[i]
         E[i], E[i_max] = E[i_max], E[i]
-        for k in range(i+1, n):
+        for k in range(i + 1, n):
             f = A[k][i] / A[i][i]
             for j in range(n):
                 A[k][j] -= A[i][j] * f
                 E[k][j] -= E[i][j] * f
-    for i in range(n-1, -1, -1):
-        for k in range(i-1, -1, -1):
+    for i in range(n - 1, -1, -1):
+        for k in range(i - 1, -1, -1):
             f = A[k][i] / A[i][i]
             for j in range(n):
                 E[k][j] -= E[i][j] * f
