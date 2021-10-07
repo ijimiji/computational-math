@@ -8,7 +8,7 @@ def find_error(x):
     return error / max_y
 
 
-N = 5
+N = 2
 k = 1
 r = lambda: randint(-10, 10) * 1.00
 
@@ -44,11 +44,11 @@ x[N] = beta[N + 1]
 for i in reversed(range(N)):
     x[i] = alpha[i + 1] * x[i + 1] + beta[i + 1]
 
-print(a)
-print(b)
-print(c)
-print(f)
-print(x)
-print(y)
+print(f"a ={a}")
+print(f"b ={b}")
+print(f"c ={c}")
+print(f"f ={f}")
+print(f"y*={x}")
+print(f"y ={y}")
 
 print(find_error(x))
