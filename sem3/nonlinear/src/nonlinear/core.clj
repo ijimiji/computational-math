@@ -1,5 +1,7 @@
-(ns vma.core
+(ns nonlinear.core
   (:gen-class))
+
+(require '[oz.core :as oz])
 
 (def pow 
   "A wrapper for Java pow function from Math."
@@ -44,7 +46,6 @@
 (defn f [x]
   "A given function f."
   (- (pow 2 x) (+ (pow x 2) 0.5)))
-
 
 (defn create-plot [f a b]
   (oz/view! {:data {:values 

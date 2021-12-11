@@ -5,7 +5,6 @@
             :url "https://www.eclipse.org/legal/epl-2.0/"}
   :dependencies [[org.clojure/clojure "1.10.3"]
                  [metasoarous/oz "2.0.0-alpha3"]]
-  :plugins [[cider/cider-nrepl "0.24.0"]]
   :main ^:skip-aot nonlinear.core
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all
