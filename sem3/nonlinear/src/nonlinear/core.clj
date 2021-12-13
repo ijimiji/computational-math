@@ -17,8 +17,8 @@
   "Calculate logarithm with a base of e."
   #(Math/log %))
 
-(defn dihotomy [f a b n]
-  "Find interval [a, b] with dihotomy."
+(defn dichotomy [f a b n]
+  "Find interval [a, b] with dichotomy."
   (let [c (/ (+ a b) 2)
         diff (- b a)]
     (println n a (f a) b (f b) diff)
@@ -61,7 +61,7 @@
              :mark {:type "line" :interpolate "monotone"}}))
 
 
-(dihotomy f -100 100 0)
+(dichotomy f -100 100 0)
 
 (oz/start-server!)
 (create-plot f -2 2)
