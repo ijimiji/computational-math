@@ -24,7 +24,7 @@
     (println n a (f a) b (f b) diff)
     (if (> diff (* 2 0.1))
       (let [[a b] (if (< (* (f a) (f c)) 0) [a c] [c b])]
-        (dihotomy f a b (inc n)))
+        (dichotomy f a b (inc n)))
       [a b])))
 
 (defn mpi [f x n]
@@ -67,13 +67,13 @@
 (create-plot f -2 2)
 
 (mpi 
-  #(+ % (* -1/2 (- (pow 2 %) (pow % 2) 1/2)))
-  -1 0)
+ #(+ % (* -1/2 (- (pow 2 %) (pow % 2) 1/2)))
+ -1 0)
 
 (newton 
-  #(/ (- (pow 2 %) (pow % 2) 1/2)
-      (- (* (pow 2 -2/3) (log 2)) (* 2 -2/3)))
-  -1 0)
+ #(/ (- (pow 2 %) (pow % 2) 1/2)
+     (- (* (pow 2 -2/3) (log 2)) (* 2 -2/3)))
+ -1 0)
 
 (defn -main
   "I don't do a whole lot ... yet."
