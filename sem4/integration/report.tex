@@ -1,0 +1,148 @@
+% Russian language
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[russian]{babel}
+
+% Math symbols
+\usepackage{amssymb}
+\usepackage{amsmath}
+
+% Images inplace
+\usepackage{float}
+\usepackage{graphicx}
+
+% Code blocks
+\DeclareFixedFont{\ttb}{T1}{txtt}{bx}{n}{12} % for bold
+\DeclareFixedFont{\ttm}{T1}{txtt}{m}{n}{12}  % for normal
+\usepackage{color}
+\definecolor{deepblue}{rgb}{0,0,0.5}
+\definecolor{deepred}{rgb}{0.6,0,0}
+\definecolor{deepgreen}{rgb}{0,0.5,0}
+\usepackage{listings}
+\newcommand\pythonstyle{\lstset{
+language=Haskell,
+basicstyle=\ttm,
+morekeywords={self},              % Add keywords here
+keywordstyle=\ttb\color{deepblue},
+emph={MyClass,__init__},          % Custom highlighting
+emphstyle=\ttb\color{deepred},    % Custom highlighting style
+stringstyle=\color{deepgreen},
+frame=tb,                         % Any extra options here
+showstringspaces=false
+}}
+\lstnewenvironment{python}[1][]
+{
+\pythonstyle
+\lstset{#1}
+}
+{}
+\newcommand\pythonexternal[2][]{{
+\pythonstyle
+\lstinputlisting[#1]{#2}}}
+\newcommand\pythoninline[1]{{\pythonstyle\lstinline!#1!}}
+% Code blocks
+
+\makeatletter
+\renewcommand*\env@matrix[1][*\c@MaxMatrixCols c]{%
+  \hskip -\arraycolsep
+  \let\@ifnextchar\new@ifnextchar
+  \array{#1}}
+\makeatother
+
+\title{Лабораторная работа №5}
+\author{Ларин Егор. 4 группа 2 курс}
+
+\begin{document}
+\maketitle
+\section*{Теория}
+\[f(x) = \frac{e^x}{1+x^2}\]
+\[a = 1, b =2, k = 4\]
+\[ \boxed{\varepsilon = 10 ^{-7}}\]
+\[h = \frac{b-a}{n}\]
+\[I = \int_a^b f(x)dx \hspace{0.1cm} - \hspace{0.1cm} ? \]
+\subsection*{Правило Рунге}
+\begin{enumerate}
+\item \begin{equation*}
+    \begin{split}
+        Q_1 &= Q(n) \\
+        Q_2 &= Q(2n)
+    \end{split}
+\end{equation*}
+\item \[R = \frac{Q_2 - Q_1} {2^m -1},\]
+где $m$ -- порядок точности КФ, $n$ -- число разбиений отрезка $\left[a, b\right]$.
+    \item Если $\left| R\right| \leq \varepsilon $, то прекращаем вычисления и $I \approx \hat{Q} = Q_2 + R$.
+    \item В ином случае $Q_1 = Q_2, Q_2 = Q(4n)$ и возвращаемся к шагу 2.
+\end{enumerate} 
+\subsubsection*{КФ Симпсона}
+\[
+I \approx Q^C = \frac{h}{3} \cdot \sum_{i=1,2}^{n-1} f(x_{i-1}) + 4 f(x_i) + f(x_{i+1})
+\]
+\[m=4\]
+\subsubsection*{КФ трапеций}
+\[
+I \approx Q^T = h \cdot \left(\frac{f(a) + f(b)}{2} \sum_{i=1}^{n-1} f(x_i)  \right)
+\]
+\[m=2\]
+\subsection*{КФ НАСТ}
+$p(x) = 1$, значит в качестве ортогонального многочлена степени $k$ 
+можно выбрать многочлен Лежандра $P_n(x)$ степени $k$.
+\[P_3(x) = \frac{1}{2}\cdot \left(5x^3 - 3x\right)  \]
+\[P_4(x) = \frac{1}{8}\cdot \left(35x^4 - 30x^2 + 3\right)  \]
+Коэффициенты КФ могут быть найдены как
+\[A_i = \frac{2}{k^2} \cdot \frac{1-x_i ^ 2}{P_3(x_i) ^ 2}, P_4(x_i) = 0, i = \overline{1, 4}\]
+\begin{equation*}
+    \begin{split}
+        x_1 &= -0.861136311\\
+        x_2 &= 0.861136311\\
+        x_3 &= -0.339981043 \\
+        x_4 &= 0.339981043
+    \end{split}
+\end{equation*}
+В итоге имеем
+\begin{equation*}
+   \begin{split}
+Q^H &=  0.34785485202283456 f(\frac{a + b}{2} + x_1  \frac{b - a}{2}) \\
+&+ 0.34785485202283456 f(\frac{a + b}{2} + x_2 \frac{b - a}{2})  \\
+&+ 0.6521451563287455 f(\frac{a + b}{2} + x_3  \frac{b - a}{2}) \\
+&+ 0.6521451563287455 f(\frac{a + b}{2} + x_4  \frac{b - a}{2})
+   \end{split} 
+\end{equation*}
+
+
+
+
+
+\section*{Листинг кода}
+\begin{python}
+eps = 1.0e-7
+a = 1
+b = 2
+f x = exp x / (1 + x ^ 2)
+integrateTrapezoid n = h * sum ((f a + f b) / 2 : [f x | x <- [a + h, a + 2 * h .. b - h]]) where h = (b - a) / n
+integrateSimpsons n = h / 3 * sum [f (x - h) + 4 * f x + f (x + h) | x <- [a + h, a + 3 * h .. b - h]] where h = (b - a) / n
+runge i m n = if abs r < eps then q2 + r else runge i m (n * 2)
+  where q1 = i n
+        q2 = i (2 * n)
+        r = (q2 - q1) / (2 ** m -1)
+xs = [-0.861136311, 0.861136311, -0.339981043, 0.339981043]
+p x = 2.5 * x ** 3 - 1.5 * x
+c k = (1 - (xs !! k ** 2)) / (8 * (p (xs !! k) ** 2))
+sub x = (a + b) / 2 + x * (b - a) / 2
+gauss = (b - a) / 2 * sum [c i * f (sub (xs !! i)) | i <- [0 .. 3]]
+
+main = do
+  print gauss
+  print $ runge integrateSimpsons  4 1
+  print $ runge integrateTrapezoid 2 1
+\end{python}
+\section*{Результаты вычислительного эксперимента}
+\[Q^{H} = 1.392468989526053\]
+\[Q^{C} = 1.392468998110868\]
+\[Q^{T} = 1.3924689981257685\]
+\section*{Выводы}
+Практический метод оценки численного интегрирования квадратурными формулами Рунге
+действительно позволяет найти приближенное значение интеграла с заданной точности,
+а квадратурная формула НАСТ построенная по методу Гаусса с весовой функцией равной единице
+позволяет найти приближенное значение интеграла с соизмеримой точностью
+без итерационного процесса.
+\end{document}
