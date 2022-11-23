@@ -57,7 +57,13 @@ def solve(h):
     plt.show()
 
     print(ys)
-    print([u(x) for x in xs])
+    print(max([u(x) - y for (x,y) in zip(xs, ys)]))
+    return ys
 
-solve(0.01)
+
+
+y1 = solve(0.02)
+y2 = solve(0.01)
+print(max([abs(y2[2*i] - y1[i]) for i in range(ceil(1 / 0.02))]))
+
 
