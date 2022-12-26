@@ -1,0 +1,288 @@
+% Russian language
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[russian]{babel}
+
+% Math symbols
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{accents}
+
+% Images inplace
+\usepackage{float}
+\usepackage{graphicx}
+% Code blocks
+\DeclareFixedFont{\ttb}{T1}{txtt}{bx}{n}{8} % for bold
+\DeclareFixedFont{\ttm}{T1}{txtt}{m}{n}{8}  % for normal
+\usepackage{color}
+\definecolor{deepblue}{rgb}{0,0,0.5}
+\definecolor{deepred}{rgb}{0.6,0,0}
+\definecolor{deepgreen}{rgb}{0,0.5,0}
+\usepackage{listings}
+\newcommand\pythonstyle{\lstset{
+language=Python,
+basicstyle=\ttm,
+morekeywords={self},              % Add keywords here
+keywordstyle=\ttb\color{deepblue},
+emph={MyClass,__init__},          % Custom highlighting
+emphstyle=\ttb\color{deepred},    % Custom highlighting style
+stringstyle=\color{deepgreen},
+frame=tb,                         % Any extra options here
+showstringspaces=false
+}}
+\lstnewenvironment{python}[1][]
+{
+\pythonstyle
+\lstset{#1}
+}
+{}
+\newcommand\pythonexternal[2][]{{
+\pythonstyle
+\lstinputlisting[#1]{#2}}}
+\newcommand\pythoninline[1]{{\pythonstyle\lstinline!#1!}}
+% Code blocks
+
+\makeatletter
+\renewcommand*\env@matrix[1][*\c@MaxMatrixCols c]{%
+  \hskip -\arraycolsep
+  \let\@ifnextchar\new@ifnextchar
+  \array{#1}}
+\makeatother
+
+\title{Лабораторная работа №4}
+\author{Ларин Егор. 4 группа 3 курс}
+
+\begin{document}
+\maketitle
+\section*{Теория}
+\subsection*{Задача}
+\begin{equation*}
+    \frac{\partial u}{\partial t} = \frac{\partial ^2u}{\partial x^2} +t^2 \sin xt + x \cos xt, 0 < x <1, 0< t\leq0.5,
+\end{equation*}
+
+$$\begin{cases}
+    u(x,0) = 0, 0\leq x \leq 1,\\
+    u(0,t) = 0, 0\leq t \leq \frac{1}{2},\\
+    u(1,t) = \sin(t), 0\leq t \leq \frac{1}{2}.
+\end{cases}$$
+
+\subsection*{Точное решение}
+\begin{equation}
+    u(x,t)  = \sin(x t)
+\end{equation}
+
+\subsection*{Сетка}
+\begin{itemize}
+    \item $\tau$ -- шаг сетки по времени, $N_2 = \frac{1}{2\tau}$.
+    \item $h$ -- шаг сетки по пространству, $N_1 = \frac{1}{h}$.
+    \item $\varphi_i^j = f(x_i, t_{j+\frac{1}{2}})$
+\end{itemize}
+
+\subsection*{Граничные условия}
+$$\begin{cases}
+    y_{i}^0 = 0, i = \overline{0, N_1}\\
+    y_{0}^j = 0, j = \overline{0, N_2}\\
+    y_{N_1}^j = \sin (j\tau), j = \overline{0, N_2}\\
+\end{cases}$$
+
+\subsection*{Разностная схема}
+\begin{enumerate}
+    \item Явная $\frac{y_i^{j+1}-y_i^j}{\tau} = \Lambda y_i^j + \varphi_i^j$
+    \item Чисто неявная $\frac{y_i^{j+1}-y_i^j}{\tau} =  \Lambda y_i^{j+1}+\varphi_i^j$
+    \item Кранка-Николсона $\frac{y_i^{j+1}-y_i^j}{\tau} = \frac{1}{2}(\Lambda y_i^j + \Lambda y_i^{j+1})+\varphi_i^j$
+\end{enumerate}
+
+\subsection*{Устойчивость и порядок аппроксимации}
+\begin{itemize}
+    \item Явная -- $O(\tau + h^2)$, не является абсолютно устойчивой.
+    \item Чисто -- неявная $O(\tau + h^2)$, является абсолютно устойчивой.
+    \item Кранка-Николсона -- $O(\tau^2 + h^2)$, является абсолютно устойчивой.
+\end{itemize}
+
+\section*{Листинг кода}
+\begin{python}
+import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+
+a = 0.
+b = 1.
+c = 0.
+d = 0.5
+
+draw_plots = False
+
+def u(x, t):
+    return np.sin(t * x)
+
+def u0(x):
+    return 0
+
+def u1(t):
+    return 0.
+
+def u2(t):
+    return np.sin(t)
+    
+def f(x, t):
+    return t**2 * np.sin(x*t) + x * np.cos(x * t)
+
+def TDMA(a, b, c, f):
+    beta = []
+    l = len(c) - 1
+    alfa = [b[0] / c[0]]
+    beta.append(f[0] / c[0])
+    for i in range(1, l):
+        check = (c[i] - a[i - 1] * alfa[i - 1])
+        if abs(check) < 1e-19: exit()
+        alfa.append(b[i] / check)
+        beta.append((f[i] + a[i - 1] * beta[i - 1]) / check)
+    beta.append((f[l] + a[l - 1] * beta[l - 1]) / (c[l] - a[l -1] * alfa[l - 1]))
+    y = [0] * (l + 1)
+    y[l] = beta[l]
+    for i in range(l - 1, -1, -1):
+        y[i] = alfa[i] * y[i + 1] + beta[i]
+    return np.array(y)
+
+def plot(y):
+    data = np.array(y)
+    length = data.shape[0]
+    width = data.shape[1]
+    x, y = np.meshgrid(np.arange(width), np.arange(length))
+    ax = plt.axes(projection='3d')
+    ax.plot_surface(x, y, data)
+    if draw_plots:
+        plt.show()
+
+def build_exact(h, tau):
+    n = int((b - a) / h) + 1
+    m = int((d - c) / tau) + 1
+    ys = np.zeros((n, m))
+    for i in range(n):
+        for j in range(m):
+            ys[i, j] = u(h*i, tau*j)
+    return ys
+
+def build_explicit(h, tau):
+    xs = np.linspace(a, b, int((b - a) / h) + 1)
+    ts = np.linspace(c, d, int((d - c) / tau) + 1)
+    ys = np.zeros((len(xs), len(ts)))
+    
+    for i in range(len(xs)):
+        ys[i, 0] = u0(xs[i])
+        
+    for j in range(len(ts) - 1):
+        ys[0, j + 1] = u1(ts[j + 1])
+        
+        for i in range(1, len(xs) - 1 ):
+            a_i = (ys[i + 1, j] - 2 * ys[i, j] + ys[i - 1, j]) / (h * h)
+            b_i = f(xs[i], ts[j])
+            ys[i, j + 1] = tau * (a_i + b_i) + ys[i, j]
+            
+        ys[len(xs) - 1, j + 1] = u2(ts[j + 1])
+    
+    plot(ys)
+
+    return ys
+
+def build_implicit(h, tau):
+    xs = np.linspace(a, b, int((b - a) / h) + 1)
+    ts = np.linspace(c, d, int((d - c) / tau) + 1)
+    ys = np.zeros((len(xs), len(ts)))
+    
+    for i in range(len(xs)):
+        ys[i, 0] = u0(xs[i])
+        
+    for j in range(len(ts)-1):
+        c_i = [1]
+        c_i = c_i + [1 / tau + 2 / (h * h)] * (len(xs) - 2)
+        c_i.append(1)
+        
+        a_i = []
+        a_i = a_i + [-1 / (h * h)] * (len(xs) - 2)
+        a_i.append(0)
+        
+        b_i = [0]
+        b_i = b_i + [-1 / (h * h)] * (len(xs) - 2)
+        
+        f_i = [u1(ts[j + 1])]
+        for i in range(1, len(xs) - 1):
+            l = f(xs[i], ts[j + 1])
+            f_i.append((ys[i, j] / tau) + l)
+        f_i.append(u2(ts[j + 1]))
+        ys[:, j + 1] = TDMA(-np.array(a_i), -np.array(b_i), c_i, f_i)
+
+    plot(ys)
+    return ys
+
+
+def build_nickolson(h, tau):
+    xs = np.linspace(a, b, int((b - a) / h) + 1)
+    ts = np.linspace(c, d, int((d - c) / tau) + 1)
+    ys = np.zeros((len(xs), len(ts)))
+    
+    for i in range(len(xs)):
+        ys[i, 0] = u0(xs[i])
+        
+    for j in range(len(ts)-1):
+        c_i = [1]
+        c_i = c_i + [1 / tau + 1 / (h * h)] * (len(xs) - 2)
+        c_i.append(1)
+        
+        a_i = []
+        a_i = a_i + [-1 / (2 * h * h)] * (len(xs) - 2)
+        a_i.append(0)
+        
+        b_i = [0]
+        b_i = b_i + [-1 / (2 * h * h)] * (len(xs) - 2)
+        
+        f_i = [u1(ts[j + 1])]
+        for i in range(1, len(xs) - 1):
+            l = f(xs[i], ts[j] + 0.5 * tau)
+            v = (1 / (2 * h * h)) * (ys[i + 1, j] - 2 * ys[i, j] + ys[i - 1, j])
+            f_i.append((ys[i, j] / tau) + l + v)
+        f_i.append(u2(ts[j + 1]))
+        ys[:, j + 1] = TDMA(-np.array(a_i), -np.array(b_i), c_i, f_i) 
+
+    plot(ys)
+    return ys
+
+print(f'Explicit: {np.max(np.abs(build_exact(0.1,0.1) -build_explicit(0.1,0.1)))}')
+print(f'Explicit: {np.max(np.abs(build_exact(0.1,0.005) - build_explicit(0.1,0.005)))}')
+print(f"Implicit: {np.max(np.abs(build_exact(0.1,0.1) - build_implicit(0.1,0.1)))}")
+print(f"Nickolson: {np.max(np.abs(build_exact(0.1,0.1) - build_nickolson(0.1, 0.1)))}")
+\end{python}
+
+\section*{Графики}
+\begin{figure}[H]
+\includegraphics[width=0.9\textwidth]{unstable.png}
+\caption{Явная неустойчивая}
+\includegraphics[width=0.9\textwidth]{stable.png}
+\caption{Явная устойчивая}
+\end{figure}
+\begin{figure}[H]
+\includegraphics[width=0.9\textwidth]{implicit.png}
+\caption{Чисто неявная}
+\includegraphics[width=0.9\textwidth]{nick.png}
+\caption{Кранка-Николсона}
+\end{figure}
+\begin{figure}[H]
+\includegraphics[width=0.9\textwidth]{exact.png}
+\caption{Точное решение}
+\end{figure}
+
+\section*{Результаты вычислительного эксперимента}
+\begin{tabular}[H]{|l|l|}
+  \hline
+  Схема & $\max \left|y_i^j - u(x_i, t_j)\right| $ \\
+  \hline
+  Явная (нейстойчивая) &  18.08729087566136 \\
+  \hline
+  Явная (устойчивая) &   2.770470845148143e-05\\
+  \hline
+  Чисто неявная& 0.0004969953632136814\\
+  \hline
+  Кранка-Николсона & 0.00017371480558825425 \\
+  \hline
+\end{tabular} 
+\end{document}
